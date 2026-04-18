@@ -18,7 +18,7 @@ public class CorsConfig {
         config.setAllowCredentials(true);
 
         // ✅ Your frontend URLs (local + production)
-        config.setAllowedOrigins(List.of("http://localhost:5173", "https://PLACEHOLDER_VERCEL_URL"));
+        config.setAllowedOrigins(List.of("http://localhost:5173", "https://stock-market-frontend-ecru.vercel.app"));
 
         config.setAllowedHeaders(List.of("*"));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
