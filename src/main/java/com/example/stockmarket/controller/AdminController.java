@@ -5,7 +5,9 @@ import com.example.stockmarket.dto.AdminStockAllocationRequest;
 import com.example.stockmarket.entity.Holding;
 import com.example.stockmarket.entity.Stock;
 import com.example.stockmarket.entity.User;
+import com.example.stockmarket.repository.AdminOrderRepository;
 import com.example.stockmarket.repository.HoldingRepository;
+import com.example.stockmarket.repository.PriceUpdateRepository;
 import com.example.stockmarket.repository.StockRepository;
 import com.example.stockmarket.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,6 +29,44 @@ public class AdminController {
 
     @Autowired
     private HoldingRepository holdingRepository;
+
+    @Autowired
+    private AdminOrderRepository adminOrderRepository;
+
+    @Autowired
+    private PriceUpdateRepository priceUpdateRepository;
+
+    // ================= MASTER RESET =================
+    @PostMapping("/admin/masterReset")
+    public Map<String, Object> masterReset() {
+        Map<String, Object> response = new HashMap<>();
+
+        // 1. Stop trading
+        TradingState.setTradingOpen(false);
+
+        // 2. Clear all orders and price previews
+        adminOrderRepository.deleteAll();
+        priceUpdateRepository.deleteAll();
+
+        // 3. Clear all holdings
+        holdingRepository.deleteAll();
+
+        // 4. Clear all stocks
+        stockRepository.deleteAll();
+
+        // 5. Reset all USER balances to 500000
+        List<User> users = userRepository.findAll();
+        for (User user : users) {
+            if ("USER".equalsIgnoreCase(user.getRole())) {
+                user.setBalance(500000.0);
+                userRepository.save(user);
+            }
+        }
+
+        response.put("success", true);
+        response.put("message", "Master reset complete. All stocks, orders, holdings cleared. User balances reset to ₹500,000.");
+        return response;
+    }
 
     @GetMapping("/trading-status")
     public boolean getTradingStatus() {
