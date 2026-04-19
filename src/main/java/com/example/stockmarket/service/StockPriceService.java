@@ -21,10 +21,9 @@ public class StockPriceService {
 
         List<Stock> stocks = stockRepo.findAll();
 
-        for(Stock s : stocks){
-            s.setPrice(s.getPrice() + (Math.random()*20 - 10));
-            stockRepo.save(s);
-        }
+        // Removed random price fluctuations. Prices will now ONLY be updated 
+        // when the admin authorizes the orders.
+        // We still broadcast the current prices so all users are in perfect sync.
 
         template.convertAndSend("/topic/stocks", stocks);
     }
