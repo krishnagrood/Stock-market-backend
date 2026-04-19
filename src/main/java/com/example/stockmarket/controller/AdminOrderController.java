@@ -26,17 +26,20 @@ public class AdminOrderController {
     private final StockRepository stockRepository;
     private final UserRepository userRepository;
     private final HoldingRepository holdingRepository;
+    private final com.example.stockmarket.service.MarketBrainService marketBrainService;
 
     public AdminOrderController(AdminOrderRepository adminOrderRepository,
                                 PriceUpdateRepository priceUpdateRepository,
                                 StockRepository stockRepository,
                                 UserRepository userRepository,
-                                HoldingRepository holdingRepository) {
+                                HoldingRepository holdingRepository,
+                                com.example.stockmarket.service.MarketBrainService marketBrainService) {
         this.adminOrderRepository = adminOrderRepository;
         this.priceUpdateRepository = priceUpdateRepository;
         this.stockRepository = stockRepository;
         this.userRepository = userRepository;
         this.holdingRepository = holdingRepository;
+        this.marketBrainService = marketBrainService;
     }
 
     @GetMapping
@@ -200,23 +203,13 @@ public class AdminOrderController {
 
             Stock stock = stockOptional.get();
 
-            double totalValue = stockOrders.stream()
-                    .mapToDouble(AdminOrder::getOrderValue)
-                    .sum();
-
-            int totalQuantity = stockOrders.stream()
-                    .mapToInt(AdminOrder::getQuantity)
-                    .sum();
-
-            double avgTradePrice = totalQuantity == 0
-                    ? stock.getPrice()
-                    : (totalValue / totalQuantity);
+            double calculatedNewPrice = marketBrainService.calculateNewPrice(stock, stockOrders);
 
             PriceUpdate preview = new PriceUpdate();
             preview.setStockId(stock.getId());
             preview.setStockName(stock.getName());
             preview.setOldPrice(stock.getPrice());
-            preview.setNewPrice(avgTradePrice);
+            preview.setNewPrice(calculatedNewPrice);
 
             priceUpdateRepository.save(preview);
         }
