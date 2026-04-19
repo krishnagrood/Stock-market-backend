@@ -53,26 +53,26 @@ public class MarketBrainService {
 
         double vwap = totalQuantity == 0 ? currentPrice : (totalValue / totalQuantity);
 
-        // ── Step 2: Price Inertia — current price dominates ────────────────
-        // Orders can influence at most 25% of the new price.
-        // The influence scales with volume (more shares traded = more influence).
-        double orderInfluence = Math.min((double) totalQuantity / 500.0, 0.25);
+        // ── Step 2: Price Influence Scaling — how fast the market moves ─────
+        // Reduced the inertia so the market reacts more aggressively to volume.
+        // Even 50 units traded will now have a 50% impact on the new price.
+        double orderInfluence = Math.min((double) totalQuantity / 100.0, 0.65);
         double priceInertia = 1.0 - orderInfluence;
-
-        // Blended price: heavy weight on current price, small weight on VWAP
+        
+        // Blended price: allows VWAP to pull the price much more strongly
         double blendedPrice = (currentPrice * priceInertia) + (vwap * orderInfluence);
 
-        // ── Step 3: Sentiment Score — subtle directional nudge ─────────────
+        // ── Step 3: Sentiment Score — directionally aggressive nudge ───────
         // Measures overall market mood from the order book.
-        // Range: -1.0 (all bearish) to +1.0 (all bullish)
         int totalOrders = stockOrders.size();
         double sentimentScore = 0.0;
         if (totalOrders > 0) {
             sentimentScore = (double) (ordersAboveMarket - ordersBelowMarket) / totalOrders;
         }
 
-        // Apply a small sentiment nudge (max ±3% from sentiment alone)
-        double sentimentNudge = sentimentScore * 0.03;
+        // Apply a more aggressive sentiment nudge (max ±8% for strong sentiment)
+        // This ensures the 2-5% "real feel" variation the user requested.
+        double sentimentNudge = sentimentScore * 0.08;
         double newPrice = blendedPrice * (1.0 + sentimentNudge);
 
         // ── Step 4: Circuit Breaker — cap at ±15% ─────────────────────────
