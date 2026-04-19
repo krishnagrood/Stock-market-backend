@@ -13,6 +13,7 @@ import com.example.stockmarket.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+import org.springframework.security.crypto.password.PasswordEncoder;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -36,6 +37,9 @@ public class AdminController {
     @Autowired
     private PriceUpdateRepository priceUpdateRepository;
 
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
     // ================= MASTER RESET =================
     @PostMapping("/admin/masterReset")
     public Map<String, Object> masterReset() {
@@ -54,12 +58,11 @@ public class AdminController {
         // 4. Clear all stocks
         stockRepository.deleteAll();
 
-        // 5. Reset all USER balances to 500000
+        // 5. DELETE all USER accounts (keep ADMINS)
         List<User> users = userRepository.findAll();
         for (User user : users) {
             if ("USER".equalsIgnoreCase(user.getRole())) {
-                user.setBalance(500000.0);
-                userRepository.save(user);
+                userRepository.delete(user);
             }
         }
 
@@ -173,6 +176,65 @@ public class AdminController {
 
         response.put("success", true);
         response.put("message", "Stock deleted successfully");
+        return response;
+    }
+
+    @PostMapping("/admin/createUser")
+    public Map<String, Object> createUser(@RequestBody User userRequest) {
+        Map<String, Object> response = new HashMap<>();
+
+        if (userRequest.getUsername() == null || userRequest.getUsername().trim().isEmpty()) {
+            response.put("success", false);
+            response.put("message", "Username is required");
+            return response;
+        }
+
+        if (userRequest.getPassword() == null || userRequest.getPassword().trim().isEmpty()) {
+            response.put("success", false);
+            response.put("message", "Password is required");
+            return response;
+        }
+
+        if (userRepository.findByUsername(userRequest.getUsername().trim()).isPresent()) {
+            response.put("success", false);
+            response.put("message", "Username already exists");
+            return response;
+        }
+
+        User user = new User();
+        user.setUsername(userRequest.getUsername().trim());
+        user.setPassword(passwordEncoder.encode(userRequest.getPassword().trim()));
+        user.setRole("USER");
+        user.setBalance(userRequest.getBalance() > 0 ? userRequest.getBalance() : 500000.0);
+
+        userRepository.save(user);
+
+        response.put("success", true);
+        response.put("message", "User created successfully with balance ₹" + user.getBalance());
+        return response;
+    }
+
+    @DeleteMapping("/admin/deleteUser")
+    public Map<String, Object> deleteUser(@RequestParam Long userId) {
+        Map<String, Object> response = new HashMap<>();
+
+        Optional<User> userOptional = userRepository.findById(userId);
+        if (userOptional.isEmpty()) {
+            response.put("success", false);
+            response.put("message", "User not found");
+            return response;
+        }
+
+        User user = userOptional.get();
+        if ("ADMIN".equalsIgnoreCase(user.getRole())) {
+            response.put("success", false);
+            response.put("message", "Cannot delete Admin accounts");
+            return response;
+        }
+
+        userRepository.deleteById(userId);
+        response.put("success", true);
+        response.put("message", "User deleted successfully");
         return response;
     }
 
