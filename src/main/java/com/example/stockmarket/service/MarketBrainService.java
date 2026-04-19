@@ -44,7 +44,15 @@ public class MarketBrainService {
         // Final Price Calculation
         double newPrice = currentPrice + ((vwap - currentPrice) * liquidityWeight * sentimentMultiplier);
 
-        // Sanity Check: Floor price to 0.01
+        // 4. Circuit Breaker: Limit variation to max 15% up or down
+        double maxChange = currentPrice * 0.15;
+        double minPrice = currentPrice - maxChange;
+        double maxPrice = currentPrice + maxChange;
+
+        // Clamp the price between minPrice and maxPrice
+        newPrice = Math.max(minPrice, Math.min(newPrice, maxPrice));
+
+        // Sanity Check: Ensure price is never negative and has a minimum floor of 0.01
         return Math.max(newPrice, 0.01);
     }
 }
