@@ -55,17 +55,10 @@ public class AdminOrderController {
     public Map<String, Object> addOrder(@RequestBody AdminOrderRequest request) {
         Map<String, Object> response = new HashMap<>();
 
-        if (request.getBuyerTeam() == null || request.getBuyerTeam().trim().isEmpty()) {
-            response.put("success", false);
-            response.put("message", "Buyer team is required");
-            return response;
-        }
+        // Team fields are now optional and default to 'Direct'
+        String buyerTeam = (request.getBuyerTeam() == null || request.getBuyerTeam().trim().isEmpty()) ? "Direct" : request.getBuyerTeam().trim();
+        String sellerTeam = (request.getSellerTeam() == null || request.getSellerTeam().trim().isEmpty()) ? "Direct" : request.getSellerTeam().trim();
 
-        if (request.getSellerTeam() == null || request.getSellerTeam().trim().isEmpty()) {
-            response.put("success", false);
-            response.put("message", "Seller team is required");
-            return response;
-        }
 
         if (request.getBuyerUsername() == null || request.getBuyerUsername().trim().isEmpty()) {
             response.put("success", false);
@@ -156,8 +149,8 @@ public class AdminOrderController {
         }
 
         AdminOrder order = new AdminOrder();
-        order.setBuyerTeam(request.getBuyerTeam().trim());
-        order.setSellerTeam(request.getSellerTeam().trim());
+        order.setBuyerTeam(buyerTeam);
+        order.setSellerTeam(sellerTeam);
         order.setBuyerUserId(buyer.getId());
         order.setSellerUserId(seller.getId());
         order.setStockName(stock.getName());
