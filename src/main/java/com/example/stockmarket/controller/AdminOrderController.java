@@ -278,16 +278,22 @@ public class AdminOrderController {
                 continue;
             }
 
+            // Update Seller Holding
+            double sellerAvgPrice = sellerHolding.getTotalInvestment() / sellerHolding.getQuantity();
+            double reductionValue = sellerAvgPrice * order.getQuantity();
             sellerHolding.setQuantity(sellerHolding.getQuantity() - order.getQuantity());
+            sellerHolding.setTotalInvestment(Math.max(0, sellerHolding.getTotalInvestment() - reductionValue));
             holdingRepository.save(sellerHolding);
 
+            // Update Buyer Holding
             Optional<Holding> buyerHoldingOptional =
                     holdingRepository.findByUserIdAndStockId(buyer.getId(), stock.getId());
 
             Holding buyerHolding = buyerHoldingOptional
-                    .orElse(new Holding(buyer.getId(), stock.getId(), 0));
+                    .orElse(new Holding(buyer.getId(), stock.getId(), 0, 0));
 
             buyerHolding.setQuantity(buyerHolding.getQuantity() + order.getQuantity());
+            buyerHolding.setTotalInvestment(buyerHolding.getTotalInvestment() + totalValue);
             holdingRepository.save(buyerHolding);
 
             buyer.setBalance(buyer.getBalance() - totalValue);
@@ -303,6 +309,16 @@ public class AdminOrderController {
         response.put("success", true);
         response.put("message", "Prices approved and holdings updated successfully");
         return response;
+    }
+
+    @GetMapping("/user/{userId}")
+    public List<Map<String, Object>> getOrdersByUserId(@PathVariable Long userId) {
+        return adminOrderRepository.findAll()
+                .stream()
+                .filter(o -> o.getBuyerUserId().equals(userId) || o.getSellerUserId().equals(userId))
+                .sorted(Comparator.comparing(AdminOrder::getId).reversed())
+                .map(this::mapOrderResponse)
+                .collect(Collectors.toList());
     }
 
     private Map<String, Object> mapOrderResponse(AdminOrder order) {

@@ -242,9 +242,10 @@ public class AdminController {
         }
 
         Holding holding = holdingRepository.findByUserIdAndStockId(user.getId(), stock.getId())
-                .orElse(new Holding(user.getId(), stock.getId(), 0));
+                .orElse(new Holding(user.getId(), stock.getId(), 0, 0));
 
         holding.setQuantity(holding.getQuantity() + request.getQuantity());
+        holding.setTotalInvestment(holding.getTotalInvestment() + totalCost);
         holdingRepository.save(holding);
 
         user.setBalance(user.getBalance() - totalCost);

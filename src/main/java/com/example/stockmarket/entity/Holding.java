@@ -13,6 +13,7 @@ public class Holding {
     private Long userId;
     private Long stockId;
     private int quantity;
+    private double totalInvestment;
 
     public Holding() {
     }
@@ -21,6 +22,14 @@ public class Holding {
         this.userId = userId;
         this.stockId = stockId;
         this.quantity = quantity;
+        this.totalInvestment = 0;
+    }
+
+    public Holding(Long userId, Long stockId, int quantity, double totalInvestment) {
+        this.userId = userId;
+        this.stockId = stockId;
+        this.quantity = quantity;
+        this.totalInvestment = totalInvestment;
     }
 
     public Long getId() {
@@ -39,6 +48,10 @@ public class Holding {
         return quantity;
     }
 
+    public double getTotalInvestment() {
+        return totalInvestment;
+    }
+
     public void setUserId(Long userId) {
         this.userId = userId;
     }
@@ -49,5 +62,9 @@ public class Holding {
 
     public void setQuantity(int quantity) {
         this.quantity = quantity;
+    }
+
+    public void setTotalInvestment(double totalInvestment) {
+        this.totalInvestment = totalInvestment;
     }
 }
