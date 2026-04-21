@@ -319,10 +319,13 @@ public class AdminOrderController {
         data.put("id", order.getId());
         data.put("buyerTeam", order.getBuyerTeam());
         data.put("sellerTeam", order.getSellerTeam());
+        data.put("buyerUserId", order.getBuyerUserId());
+        data.put("sellerUserId", order.getSellerUserId());
         data.put("stockName", order.getStockName());
         data.put("price", order.getPrice());
         data.put("quantity", order.getQuantity());
         data.put("orderValue", order.getOrderValue());
+        data.put("status", "PENDING");
 
         String buyerUsername = userRepository.findById(order.getBuyerUserId())
                 .map(User::getUsername)
