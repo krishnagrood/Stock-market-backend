@@ -226,9 +226,9 @@ public class AdminController {
         }
 
         User user = userOptional.get();
-        if ("ADMIN".equalsIgnoreCase(user.getRole())) {
+        if ("ADMIN".equalsIgnoreCase(user.getRole()) && "rahul".equalsIgnoreCase(user.getUsername())) {
             response.put("success", false);
-            response.put("message", "Cannot delete Admin accounts");
+            response.put("message", "Cannot delete the primary Admin account (Rahul)");
             return response;
         }
 
@@ -242,7 +242,6 @@ public class AdminController {
     public List<Map<String, Object>> getAllUsersForAdmin() {
         return userRepository.findAll()
                 .stream()
-                .filter(user -> "USER".equalsIgnoreCase(user.getRole()))
                 .map(user -> {
                     Map<String, Object> data = new HashMap<>();
                     data.put("id", user.getId());
