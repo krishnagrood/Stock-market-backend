@@ -8,11 +8,16 @@ public class HoldingResponse {
     private double currentPrice;
     private int quantity;
     private double totalValue;
+    private double totalInvestment;
+    private double avgBuyPrice;
+    private double pnl;
+    private double pnlPercent;
 
     public HoldingResponse() {}
 
     public HoldingResponse(Long holdingId, Long userId, Long stockId, String stockName,
-                           double currentPrice, int quantity, double totalValue) {
+                           double currentPrice, int quantity, double totalValue,
+                           double totalInvestment) {
         this.holdingId = holdingId;
         this.userId = userId;
         this.stockId = stockId;
@@ -20,6 +25,10 @@ public class HoldingResponse {
         this.currentPrice = currentPrice;
         this.quantity = quantity;
         this.totalValue = totalValue;
+        this.totalInvestment = totalInvestment;
+        this.avgBuyPrice = quantity > 0 ? totalInvestment / quantity : 0;
+        this.pnl = totalValue - totalInvestment;
+        this.pnlPercent = totalInvestment > 0 ? ((totalValue - totalInvestment) / totalInvestment) * 100 : 0;
     }
 
     public Long getHoldingId() {
@@ -76,5 +85,37 @@ public class HoldingResponse {
 
     public void setTotalValue(double totalValue) {
         this.totalValue = totalValue;
+    }
+
+    public double getTotalInvestment() {
+        return totalInvestment;
+    }
+
+    public void setTotalInvestment(double totalInvestment) {
+        this.totalInvestment = totalInvestment;
+    }
+
+    public double getAvgBuyPrice() {
+        return avgBuyPrice;
+    }
+
+    public void setAvgBuyPrice(double avgBuyPrice) {
+        this.avgBuyPrice = avgBuyPrice;
+    }
+
+    public double getPnl() {
+        return pnl;
+    }
+
+    public void setPnl(double pnl) {
+        this.pnl = pnl;
+    }
+
+    public double getPnlPercent() {
+        return pnlPercent;
+    }
+
+    public void setPnlPercent(double pnlPercent) {
+        this.pnlPercent = pnlPercent;
     }
 }

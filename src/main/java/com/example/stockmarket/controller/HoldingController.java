@@ -42,6 +42,9 @@ public class HoldingController {
 
             double totalValue = currentPrice * holding.getQuantity();
 
+            // Skip holdings with 0 quantity (fully sold)
+            if (holding.getQuantity() <= 0) continue;
+
             response.add(new HoldingResponse(
                     holding.getId(),
                     holding.getUserId(),
@@ -49,7 +52,8 @@ public class HoldingController {
                     stockName,
                     currentPrice,
                     holding.getQuantity(),
-                    totalValue
+                    totalValue,
+                    holding.getTotalInvestment()
             ));
         }
 
