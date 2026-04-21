@@ -46,6 +46,7 @@ public class AdminOrderController {
     public List<Map<String, Object>> getAllOrders() {
         return adminOrderRepository.findAll()
                 .stream()
+                .filter(o -> "PENDING".equals(o.getStatus()))
                 .sorted(Comparator.comparing(AdminOrder::getId).reversed())
                 .map(this::mapOrderResponse)
                 .collect(Collectors.toList());
@@ -173,7 +174,10 @@ public class AdminOrderController {
     public Map<String, Object> processOrders() {
         Map<String, Object> response = new HashMap<>();
 
-        List<AdminOrder> orders = adminOrderRepository.findAll();
+        List<AdminOrder> orders = adminOrderRepository.findAll()
+                .stream()
+                .filter(o -> "PENDING".equals(o.getStatus()))
+                .collect(Collectors.toList());
         if (orders.isEmpty()) {
             response.put("success", false);
             response.put("message", "No orders available to process");
@@ -222,7 +226,10 @@ public class AdminOrderController {
         Map<String, Object> response = new HashMap<>();
 
         List<PriceUpdate> previews = priceUpdateRepository.findAll();
-        List<AdminOrder> orders = adminOrderRepository.findAll();
+        List<AdminOrder> orders = adminOrderRepository.findAll()
+                .stream()
+                .filter(o -> "PENDING".equals(o.getStatus()))
+                .collect(Collectors.toList());
 
         if (previews.isEmpty()) {
             response.put("success", false);
@@ -297,7 +304,12 @@ public class AdminOrderController {
         }
 
         priceUpdateRepository.deleteAll();
-        adminOrderRepository.deleteAll();
+
+        // Mark all processed orders as EXECUTED (not deleted)
+        for (AdminOrder order : orders) {
+            order.setStatus("EXECUTED");
+            adminOrderRepository.save(order);
+        }
 
         response.put("success", true);
         response.put("message", "Prices approved and holdings updated successfully");
@@ -325,7 +337,7 @@ public class AdminOrderController {
         data.put("price", order.getPrice());
         data.put("quantity", order.getQuantity());
         data.put("orderValue", order.getOrderValue());
-        data.put("status", "PENDING");
+        data.put("status", order.getStatus());
 
         String buyerUsername = userRepository.findById(order.getBuyerUserId())
                 .map(User::getUsername)

@@ -20,6 +20,7 @@ public class AdminOrder {
     private double price;
     private int quantity;
     private double orderValue;
+    private String status = "PENDING";
 
     public AdminOrder() {
     }
@@ -108,5 +109,13 @@ public class AdminOrder {
 
     public void setOrderValue(double orderValue) {
         this.orderValue = orderValue;
+    }
+
+    public String getStatus() {
+        return status;
+    }
+
+    public void setStatus(String status) {
+        this.status = status;
     }
 }
