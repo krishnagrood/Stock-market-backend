@@ -248,6 +248,45 @@ public class AdminController {
                     data.put("username", user.getUsername());
                     data.put("balance", user.getBalance());
                     data.put("role", user.getRole());
+
+                    List<Holding> holdings = holdingRepository.findByUserId(user.getId());
+                    double portfolioValue = 0.0;
+                    double totalInvestment = 0.0;
+                    List<Map<String, Object>> holdingDetails = new ArrayList<>();
+
+                    for (Holding holding : holdings) {
+                        if (holding.getQuantity() <= 0) continue;
+
+                        Optional<Stock> stockOpt = stockRepository.findById(holding.getStockId());
+                        double currentPrice = stockOpt.map(Stock::getPrice).orElse(0.0);
+                        String stockName = stockOpt.map(Stock::getName).orElse("Unknown");
+
+                        double value = currentPrice * holding.getQuantity();
+                        portfolioValue += value;
+                        totalInvestment += holding.getTotalInvestment();
+
+                        Map<String, Object> hd = new HashMap<>();
+                        hd.put("stockName", stockName);
+                        hd.put("quantity", holding.getQuantity());
+                        hd.put("value", value);
+                        hd.put("investment", holding.getTotalInvestment());
+                        holdingDetails.add(hd);
+                    }
+
+                    double pnl = portfolioValue - totalInvestment;
+                    double pnlPercent = totalInvestment > 0 ? (pnl / totalInvestment) * 100 : 0.0;
+
+                    long totalOrders = adminOrderRepository.findAll().stream()
+                            .filter(o -> o.getBuyerUserId().equals(user.getId()) || o.getSellerUserId().equals(user.getId()))
+                            .count();
+
+                    data.put("portfolioValue", portfolioValue);
+                    data.put("totalInvestment", totalInvestment);
+                    data.put("pnl", pnl);
+                    data.put("pnlPercent", pnlPercent);
+                    data.put("totalOrders", totalOrders);
+                    data.put("holdings", holdingDetails);
+
                     return data;
                 })
                 .collect(Collectors.toList());
