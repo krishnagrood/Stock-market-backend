@@ -84,6 +84,14 @@ public class AuthController {
                     .body("Invalid username or password");
         }
 
+        // ❌ Restrict standard USER login
+        if ("USER".equalsIgnoreCase(user.getRole())) {
+            System.out.println("User login blocked (restricted access)");
+            return ResponseEntity
+                    .status(HttpStatus.FORBIDDEN)
+                    .body("User logins are currently restricted.");
+        }
+
         // ✅ Success
         System.out.println("Login SUCCESS");
 
